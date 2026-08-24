@@ -8,14 +8,13 @@
     * { box-sizing: border-box; }
 
     :root {
-      /* Estética do Painel XAU: Fundos profundos e destaques em Ouro Vivo */
       --bg: #09090b; 
       --card: #121214;
       --card-2: #1c1c1f;
       --border: #27272a;
       --text: #f4f4f5;
       --muted: #a1a1aa;
-      --accent: #eab308; /* Amarelo/Dourado característico XAU */
+      --accent: #eab308;
       --accent-hover: #ca8a04;
       --success: #22c55e;
       --danger: #ef4444;
@@ -81,7 +80,6 @@
     .card-title h2 { font-size: 20px; }
     .card-title span { color: var(--muted); font-size: 13px; display: block; margin-top: 5px; }
 
-    /* CORREÇÃO DO GRID PARA O SAFARI: Uso de Flexbox */
     .top-fields {
       display: flex;
       flex-direction: row;
@@ -97,12 +95,11 @@
       letter-spacing: .08em;
       display: flex;
       flex-direction: column;
-      flex: 1; /* Faz os campos dividirem o espaço 50/50 */
+      flex: 1;
       min-width: 0; 
       width: 100%;
     }
 
-    /* ESTILO UNIFICADO PARA INPUT E SELECT - BLINDA CONTRA O SAFARI NATIVO */
     input, select {
       width: 100%;
       min-width: 0; 
@@ -119,16 +116,22 @@
       font-family: inherit;
       box-sizing: border-box;
       display: block;
-      -webkit-appearance: none; /* ESSENCIAL: Remove o visual nativo feio do iOS */
+      -webkit-appearance: none;
       appearance: none;
+      text-align: left; /* Garante alinhamento nos campos normais */
     }
 
-    /* Ajuste para o texto dentro do campo de data no Safari alinhar corretamente */
+    /* FORÇA O ALINHAMENTO DO TEXTO DA DATA NO SAFARI/IOS */
+    input[type="date"]::-webkit-datetime-edit,
+    input[type="date"]::-webkit-datetime-edit-fields-wrapper,
     input[type="date"]::-webkit-date-and-time-value {
-      text-align: left;
+      text-align: left !important;
+      display: flex;
+      justify-content: flex-start;
+      padding: 0;
+      margin: 0;
     }
 
-    /* Ícone customizado de Calendário para o campo DATA (Substitui o nativo do iOS) */
     input[type="date"] {
       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23a1a1aa%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2218%22%20rx%3D%222%22%20ry%3D%222%22%3E%3C%2Frect%3E%3Cline%20x1%3D%2216%22%20y1%3D%222%22%20x2%3D%2216%22%20y2%3D%226%22%3E%3C%2Fline%3E%3Cline%20x1%3D%228%22%20y1%3D%222%22%20x2%3D%228%22%20y2%3D%226%22%3E%3C%2Fline%3E%3Cline%20x1%3D%223%22%20y1%3D%2210%22%20x2%3D%2221%22%20y2%3D%2210%22%3E%3C%2Fline%3E%3C%2Fsvg%3E");
       background-repeat: no-repeat;
@@ -137,7 +140,6 @@
       padding-right: 40px; 
     }
 
-    /* Ícone customizado de Seta para o campo SELECT */
     select {
       cursor: pointer;
       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a1a1aa%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -216,7 +218,6 @@
     .message.success { color: var(--success); }
     .message.error { color: var(--danger); }
 
-    /* RESPONSIVIDADE COM REGRAS RÍGIDAS CONTRA ESTOURO NO MOBILE */
     @media (max-width: 760px) {
       .header { align-items: flex-start; flex-direction: column; }
       .top-fields { flex-direction: column; } 
@@ -298,7 +299,6 @@
       mensagemEl.className = `message ${type}`;
     }
 
-    // Função auxiliar para popular o campo "TREINO"
     function popularSelectTreinos() {
       treinoEl.innerHTML = '<option value="">Selecione o treino</option>';
       treinos.forEach(t => {
@@ -316,7 +316,6 @@
         return;
       }
 
-      // 1. CARREGAMENTO INSTANTÂNEO PELO CACHE DO NAVEGADOR
       const cacheLocal = localStorage.getItem("treinosCacheXAU");
       if (cacheLocal) {
         try {
@@ -330,7 +329,6 @@
         statusEl.textContent = "Consultando planilha...";
       }
 
-      // 2. BUSCA EM SEGUNDO PLANO PARA ATUALIZAR
       try {
         const response = await fetch(`${API_URL}?action=getTreinos&t=${Date.now()}`);
 
@@ -341,7 +339,6 @@
 
         treinos = Array.isArray(data.treinos) ? data.treinos : [];
 
-        // Atualiza a tela e o cache local com os dados novos da planilha
         popularSelectTreinos();
         localStorage.setItem("treinosCacheXAU", JSON.stringify(treinos));
 
@@ -378,6 +375,7 @@
         row.className = "exercise";
         row.dataset.index = index;
 
+        // ADICIONADO: type="number" e inputmode="numeric" para forçar teclado numérico
         row.innerHTML = `
           <div class="exercise-name">
             ${escapeHtml(ex.nome)}
@@ -388,8 +386,8 @@
 
           <input class="carga" type="number" min="0" step="0.5" placeholder="Carga" inputmode="decimal">
           <input class="series" type="number" min="1" step="1" value="${escapeHtml(ex.series)}" placeholder="Séries" inputmode="numeric">
-          <input class="repeticoes" type="text" placeholder="Reps">
-          <input class="rir" type="text" placeholder="RIR">
+          <input class="repeticoes" type="number" min="0" step="1" placeholder="Reps" inputmode="numeric">
+          <input class="rir" type="number" min="0" step="1" placeholder="RIR" inputmode="numeric">
         `;
 
         exerciciosEl.appendChild(row);
@@ -471,9 +469,11 @@
           "success"
         );
 
-        document.querySelectorAll(".carga, .repeticoes, .rir").forEach(input => {
-          input.value = "";
-        });
+        // NOVA LÓGICA DE RESET APÓS SUCESSO
+        treinoEl.value = "";             // Reseta o select de treino
+        renderExercicios(null);          // Limpa a tela de exercícios
+        dataEl.value = hojeLocal();      // Devolve a data para o dia atual
+
       } catch (error) {
         showMessage(error.message, "error");
       } finally {
