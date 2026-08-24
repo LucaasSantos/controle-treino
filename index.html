@@ -4,9 +4,193 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Controle de Treino</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    /* --- INÍCIO DO CSS --- */
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #0b0f14;
+      --card: #111720;
+      --card-2: #151d28;
+      --border: #26303d;
+      --text: #f2f5f8;
+      --muted: #8e9aaa;
+      --accent: #e5b94f;
+      --accent-hover: #f1c866;
+      --success: #4ade80;
+      --danger: #fb7185;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #18202c 0, var(--bg) 45%);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .container {
+      width: min(1050px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 42px 0 70px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      margin-bottom: 7px;
+    }
+
+    h1, h2, p { margin: 0; }
+    h1 { font-size: clamp(28px, 4vw, 42px); letter-spacing: -.03em; }
+    .header p { color: var(--muted); margin-top: 7px; }
+
+    .status {
+      border: 1px solid var(--border);
+      background: rgba(17, 23, 32, .8);
+      color: var(--muted);
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .card {
+      background: rgba(17, 23, 32, .94);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.25);
+    }
+
+    .card-title {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .card-title h2 { font-size: 20px; }
+    .card-title span { color: var(--muted); font-size: 13px; display: block; margin-top: 5px; }
+
+    .top-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    label {
+      color: #aeb8c6;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    input, select {
+      width: 100%;
+      margin-top: 8px;
+      height: 46px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card-2);
+      color: var(--text);
+      padding: 0 13px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    input:focus, select:focus { border-color: var(--accent); }
+
+    .exercise-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .exercise {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 90px 110px 90px 90px;
+      gap: 10px;
+      align-items: center;
+      padding: 13px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .exercise-name {
+      font-weight: 650;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .exercise-target {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .exercise input {
+      margin-top: 0;
+      height: 42px;
+    }
+
+    .empty {
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 26px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .primary {
+      width: 100%;
+      height: 48px;
+      border: 0;
+      border-radius: 10px;
+      margin-top: 20px;
+      background: var(--accent);
+      color: #111;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .primary:disabled { opacity: .45; cursor: not-allowed; }
+
+    .message {
+      min-height: 22px;
+      margin-top: 12px;
+      text-align: center;
+      font-size: 13px;
+    }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--danger); }
+
+    @media (max-width: 760px) {
+      .header { align-items: flex-start; flex-direction: column; }
+      .top-fields { grid-template-columns: 1fr; }
+      .exercise { grid-template-columns: 1fr 1fr; }
+      .exercise-name { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 430px) {
+      .container { width: min(100% - 20px, 1050px); padding-top: 22px; }
+      .card { padding: 16px; }
+      .exercise { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
 </head>
 <body>
+  <!-- --- INÍCIO DO HTML --- -->
   <main class="container">
     <header class="header">
       <div>
@@ -48,7 +232,205 @@
     </section>
   </main>
 
-  <script src="config.js"></script>
-  <script src="script.js"></script>
+  <!-- --- INÍCIO DO JAVASCRIPT --- -->
+  <script>
+    // URL de implantação da sua API do Google Apps Script
+    const API_URL = "https://script.google.com/macros/s/AKfycbzyCZApkumifcqQOFGWx7vXMXJ-9g2ROjMgMi_qobuHaO-xtTOFNZZlrWZ9Ev7-1fsp/exec";
+
+    const treinoEl = document.getElementById("treino");
+    const dataEl = document.getElementById("data");
+    const exerciciosEl = document.getElementById("exercicios");
+    const registrarBtn = document.getElementById("registrar");
+    const mensagemEl = document.getElementById("mensagem");
+    const statusEl = document.getElementById("status");
+
+    let treinos = [];
+
+    function hojeLocal() {
+      const d = new Date();
+      const offset = d.getTimezoneOffset();
+      return new Date(d.getTime() - offset * 60000).toISOString().slice(0, 10);
+    }
+
+    dataEl.value = hojeLocal();
+
+    function showMessage(text, type = "") {
+      mensagemEl.textContent = text;
+      mensagemEl.className = `message ${type}`;
+    }
+
+    async function carregarTreinos() {
+      if (!API_URL || API_URL.includes("COLE_AQUI")) {
+        statusEl.textContent = "Configure a API";
+        showMessage("Cole a URL do Apps Script no código.", "error");
+        return;
+      }
+
+      try {
+        statusEl.textContent = "Consultando planilha...";
+
+        const response = await fetch(`${API_URL}?action=getTreinos&t=${Date.now()}`, {
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.ok) {
+          throw new Error(data.error || "O Apps Script retornou um erro.");
+        }
+
+        treinos = Array.isArray(data.treinos) ? data.treinos : [];
+
+        treinoEl.innerHTML = '<option value="">Selecione o treino</option>';
+
+        treinos.forEach(t => {
+          const option = document.createElement("option");
+          option.value = t.nome;
+          option.textContent = t.nome;
+          treinoEl.appendChild(option);
+        });
+
+        if (treinos.length === 0) {
+          statusEl.textContent = "Conectada • 0 treinos";
+          showMessage(
+            'A planilha respondeu, mas nenhum treino foi encontrado na aba "INÍCIO". Verifique o Apps Script e faça uma nova implantação.',
+            "error"
+          );
+          return;
+        }
+
+        statusEl.textContent = `Planilha conectada • ${treinos.length} treinos`;
+        showMessage("");
+      } catch (error) {
+        statusEl.textContent = "Erro de conexão";
+        showMessage(`Não foi possível carregar os treinos: ${error.message}`, "error");
+      }
+    }
+
+    function renderExercicios(treino) {
+      exerciciosEl.innerHTML = "";
+      registrarBtn.disabled = true;
+
+      if (!treino) {
+        exerciciosEl.innerHTML =
+          '<div class="empty">Selecione um treino para carregar os exercícios.</div>';
+        return;
+      }
+
+      treino.exercicios.forEach((ex, index) => {
+        const row = document.createElement("div");
+        row.className = "exercise";
+        row.dataset.index = index;
+
+        row.innerHTML = `
+          <div class="exercise-name">
+            ${escapeHtml(ex.nome)}
+            <div class="exercise-target">
+              ${escapeHtml(ex.series)} séries • ${escapeHtml(ex.reps)} reps • RIR ${escapeHtml(ex.rir)}
+            </div>
+          </div>
+
+          <input class="carga" type="number" min="0" step="0.5" placeholder="Carga" inputmode="decimal">
+          <input class="series" type="number" min="1" step="1" value="${escapeHtml(ex.series)}" placeholder="Séries" inputmode="numeric">
+          <input class="repeticoes" type="text" placeholder="Reps">
+          <input class="rir" type="text" placeholder="RIR">
+        `;
+
+        exerciciosEl.appendChild(row);
+      });
+
+      registrarBtn.disabled = treino.exercicios.length === 0;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    treinoEl.addEventListener("change", () => {
+      const treino = treinos.find(t => t.nome === treinoEl.value);
+      renderExercicios(treino);
+    });
+
+    registrarBtn.addEventListener("click", async () => {
+      const treino = treinos.find(t => t.nome === treinoEl.value);
+      if (!treino) return;
+
+      const rows = [...document.querySelectorAll(".exercise")];
+      const registros = [];
+
+      for (const row of rows) {
+        const index = Number(row.dataset.index);
+        const ex = treino.exercicios[index];
+
+        const carga = row.querySelector(".carga").value.trim();
+        const series = row.querySelector(".series").value.trim();
+        const repeticoes = row.querySelector(".repeticoes").value.trim();
+        const rir = row.querySelector(".rir").value.trim();
+
+        if (!carga || !series || !repeticoes || !rir) {
+          showMessage(`Preencha todos os campos de "${ex.nome}".`, "error");
+          return;
+        }
+
+        registros.push({
+          data: dataEl.value,
+          treino: treino.nome,
+          exercicio: ex.nome,
+          carga,
+          series,
+          repeticoes,
+          rir
+        });
+      }
+
+      registrarBtn.disabled = true;
+      registrarBtn.textContent = "Registrando...";
+      showMessage("");
+
+      try {
+        const body = new URLSearchParams({
+          action: "registrarTreino",
+          payload: JSON.stringify(registros)
+        });
+
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body
+        });
+
+        const result = await response.json();
+
+        if (!result.ok) {
+          throw new Error(result.error || "Erro ao registrar.");
+        }
+
+        showMessage(
+          `${registros.length} exercícios registrados com sucesso.`,
+          "success"
+        );
+
+        document.querySelectorAll(".carga, .repeticoes, .rir").forEach(input => {
+          input.value = "";
+        });
+      } catch (error) {
+        showMessage(error.message, "error");
+      } finally {
+        registrarBtn.disabled = false;
+        registrarBtn.textContent = "Registrar treino";
+      }
+    });
+
+    carregarTreinos();
+  </script>
 </body>
 </html>
