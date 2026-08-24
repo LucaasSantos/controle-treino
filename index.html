@@ -68,8 +68,7 @@
     }
     .close-btn:hover { color: var(--danger); }
 
-    .report-card { background: var(--card-2); padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px; font-size: 13px; }
-    .report-card div { margin-bottom: 4px; }
+    .report-card { background: var(--card-2); padding: 14px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; font-size: 13px; }
     .report-highlight { color: var(--accent); font-weight: 700; }
     #resultado-dados { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 
@@ -84,7 +83,6 @@
 
     .header-left { display: flex; align-items: center; }
 
-    /* Correção do Botão Menu para garantir que ele apareça */
     .menu-btn { 
       background: var(--card-2); 
       border: 1px solid var(--border); 
@@ -296,7 +294,6 @@
   <main class="container">
     <header class="header">
       <div class="header-left">
-        <!-- O botão Hambúrguer agora tem classe e tamanho corretos -->
         <button id="menu-btn" class="menu-btn" aria-label="Abrir Menu">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
@@ -379,7 +376,7 @@
     closeMenuBtn.addEventListener("click", toggleMenu);
     menuOverlay.addEventListener("click", toggleMenu);
 
-    // --- BUSCA DE DADOS ---
+    // --- BUSCA E AGRUPAMENTO DE DADOS ---
     const btnBuscarDados = document.getElementById("btn-buscar-dados");
     const msgBusca = document.getElementById("msg-busca");
     const resultadoDados = document.getElementById("resultado-dados");
@@ -413,14 +410,49 @@
           msgBusca.textContent = `${data.total} registros encontrados.`;
           msgBusca.className = "message success";
           
+          // Lógica de Agrupamento por Data e Treino
+          const treinosAgrupados = {};
+          
           data.dados.forEach(item => {
+            const chave = `${item.data} | ${item.treino}`;
+            if (!treinosAgrupados[chave]) {
+              treinosAgrupados[chave] = {
+                data: item.data,
+                treino: item.treino,
+                exercicios: []
+              };
+            }
+            treinosAgrupados[chave].exercicios.push(item);
+          });
+
+          // Renderizando os Grupos
+          Object.values(treinosAgrupados).forEach(grupo => {
             const div = document.createElement("div");
             div.className = "report-card";
-            div.innerHTML = `
-              <div><span class="report-highlight">${item.data}</span> • ${item.treino}</div>
-              <div>${item.exercicio}</div>
-              <div style="color: var(--muted)">Carga: ${item.carga} | ${item.series}x${item.reps} | RIR: ${item.rir}</div>
+            
+            // Cabeçalho (Data e Treino) que aparece apenas uma vez por grupo
+            let htmlGrupo = `
+              <div style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span class="report-highlight">${escapeHtml(grupo.data)}</span> 
+                <span style="font-weight: 800; color: var(--text);">${escapeHtml(grupo.treino)}</span>
+              </div>
             `;
+            
+            // Lista dos exercícios dentro daquele grupo
+            grupo.exercicios.forEach(ex => {
+              htmlGrupo += `
+                <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.05);">
+                  <div style="font-weight: 600; font-size: 13px; color: var(--text);">${escapeHtml(ex.exercicio)}</div>
+                  <div style="color: var(--muted); font-size: 11px; margin-top: 4px; display: flex; gap: 10px;">
+                    <span>Carga: <strong>${escapeHtml(ex.carga)}</strong></span>
+                    <span>Séries: <strong>${escapeHtml(ex.series)}x${escapeHtml(ex.reps)}</strong></span>
+                    <span>RIR: <strong>${escapeHtml(ex.rir)}</strong></span>
+                  </div>
+                </div>
+              `;
+            });
+            
+            div.innerHTML = htmlGrupo;
             resultadoDados.appendChild(div);
           });
         }
