@@ -81,12 +81,13 @@
     .card-title h2 { font-size: 20px; }
     .card-title span { color: var(--muted); font-size: 13px; display: block; margin-top: 5px; }
 
-    /* CORREÇÃO DO GRID PARA O SAFARI */
+    /* CORREÇÃO DO GRID PARA O SAFARI: Uso de Flexbox */
     .top-fields {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      display: flex;
+      flex-direction: row;
       gap: 14px;
       margin-bottom: 22px;
+      width: 100%;
     }
 
     label {
@@ -96,7 +97,10 @@
       letter-spacing: .08em;
       display: flex;
       flex-direction: column;
+      flex: 1; /* Faz os campos dividirem o espaço 50/50 */
+      min-width: 0; /* ESSENCIAL: Força o Safari a respeitar o limite da tela */
       width: 100%;
+      overflow: hidden; /* Corta qualquer excesso visual */
     }
 
     /* CORREÇÃO DOS CAMPOS VAZANDO NO IOS */
@@ -114,10 +118,25 @@
       outline: none;
       font-size: 14px;
       box-sizing: border-box;
+      display: block;
+      -webkit-appearance: none; /* Remove estilos base do Safari que podem causar estouro */
+      appearance: none;
     }
 
     select {
       cursor: pointer;
+      /* Restaura a setinha no select que o appearance: none tira */
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a1a1aa%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat;
+      background-position: right 13px top 50%;
+      background-size: 10px auto;
+      padding-right: 30px;
+    }
+
+    input[type="date"] {
+      /* Devolve o ícone de calendário no iOS */
+      -webkit-appearance: auto;
+      appearance: auto;
     }
 
     input:focus, select:focus { border-color: var(--accent); }
@@ -189,10 +208,10 @@
     .message.success { color: var(--success); }
     .message.error { color: var(--danger); }
 
-    /* RESPONSIVIDADE */
+    /* RESPONSIVIDADE COM REGRAS RÍGIDAS CONTRA ESTOURO NO MOBILE */
     @media (max-width: 760px) {
       .header { align-items: flex-start; flex-direction: column; }
-      .top-fields { grid-template-columns: minmax(0, 1fr); }
+      .top-fields { flex-direction: column; } /* Mudou para empilhar no flexbox */
       .exercise { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
       .exercise-name { grid-column: 1 / -1; }
     }
