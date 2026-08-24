@@ -5,26 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Controle de Treino</title>
   <style>
-    /* --- INÍCIO DO CSS --- */
     * { box-sizing: border-box; }
 
     :root {
-      --bg: #0b0f14;
-      --card: #111720;
-      --card-2: #151d28;
-      --border: #26303d;
-      --text: #f2f5f8;
-      --muted: #8e9aaa;
-      --accent: #e5b94f;
-      --accent-hover: #f1c866;
-      --success: #4ade80;
-      --danger: #fb7185;
+      /* Estética do Painel XAU: Fundos profundos e destaques em Ouro Vivo */
+      --bg: #09090b; 
+      --card: #121214;
+      --card-2: #1c1c1f;
+      --border: #27272a;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --accent: #eab308; /* Amarelo/Dourado característico XAU */
+      --accent-hover: #ca8a04;
+      --success: #22c55e;
+      --danger: #ef4444;
     }
 
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, #18202c 0, var(--bg) 45%);
+      background: var(--bg);
       color: var(--text);
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
@@ -57,7 +57,7 @@
 
     .status {
       border: 1px solid var(--border);
-      background: rgba(17, 23, 32, .8);
+      background: var(--card);
       color: var(--muted);
       padding: 9px 12px;
       border-radius: 10px;
@@ -65,11 +65,11 @@
     }
 
     .card {
-      background: rgba(17, 23, 32, .94);
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 24px;
-      box-shadow: 0 18px 50px rgba(0,0,0,.25);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
     }
 
     .card-title {
@@ -81,22 +81,29 @@
     .card-title h2 { font-size: 20px; }
     .card-title span { color: var(--muted); font-size: 13px; display: block; margin-top: 5px; }
 
+    /* CORREÇÃO DO GRID PARA O SAFARI: Uso de minmax(0, 1fr) */
     .top-fields {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 14px;
       margin-bottom: 22px;
     }
 
     label {
-      color: #aeb8c6;
+      color: var(--muted);
       font-size: 11px;
       font-weight: 800;
       letter-spacing: .08em;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
     }
 
+    /* CORREÇÃO DOS CAMPOS VAZANDO NO IOS */
     input, select {
       width: 100%;
+      min-width: 0; /* Essencial para impedir vazamento no flex/grid do Safari */
+      max-width: 100%;
       margin-top: 8px;
       height: 46px;
       border: 1px solid var(--border);
@@ -106,6 +113,11 @@
       padding: 0 13px;
       outline: none;
       font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    select {
+      cursor: pointer;
     }
 
     input:focus, select:focus { border-color: var(--accent); }
@@ -158,9 +170,11 @@
       border-radius: 10px;
       margin-top: 20px;
       background: var(--accent);
-      color: #111;
+      color: #000;
       font-weight: 850;
+      font-size: 15px;
       cursor: pointer;
+      transition: background 0.2s ease;
     }
 
     .primary:hover:not(:disabled) { background: var(--accent-hover); }
@@ -175,22 +189,21 @@
     .message.success { color: var(--success); }
     .message.error { color: var(--danger); }
 
+    /* RESPONSIVIDADE COM REGRAS RÍGIDAS CONTRA ESTOURO NO MOBILE */
     @media (max-width: 760px) {
       .header { align-items: flex-start; flex-direction: column; }
-      .top-fields { grid-template-columns: 1fr; }
-      .exercise { grid-template-columns: 1fr 1fr; }
+      .top-fields { grid-template-columns: minmax(0, 1fr); }
+      .exercise { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
       .exercise-name { grid-column: 1 / -1; }
     }
 
     @media (max-width: 430px) {
-      .container { width: min(100% - 20px, 1050px); padding-top: 22px; }
+      .container { width: 100%; padding: 22px 16px; }
       .card { padding: 16px; }
-      .exercise { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 <body>
-  <!-- --- INÍCIO DO HTML --- -->
   <main class="container">
     <header class="header">
       <div>
@@ -232,7 +245,6 @@
     </section>
   </main>
 
-  <!-- --- INÍCIO DO JAVASCRIPT --- -->
   <script>
     // URL de implantação da sua API do Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbzyCZApkumifcqQOFGWx7vXMXJ-9g2ROjMgMi_qobuHaO-xtTOFNZZlrWZ9Ev7-1fsp/exec";
