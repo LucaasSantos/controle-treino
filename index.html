@@ -219,6 +219,7 @@
     }
     .exercise-name { font-weight: 650; font-size: 14px; line-height: 1.35; }
     .exercise-target { color: var(--muted); font-size: 11px; margin-top: 4px; }
+    .ghost-marca { color: var(--accent); font-size: 11px; font-weight: 700; margin-top: 6px; display: block; opacity: 0.9; }
     .exercise input { margin-top: 0; height: 42px; }
 
     .empty {
@@ -244,10 +245,19 @@
       padding: 18px 24px; margin-bottom: 24px; display: flex; justify-content: space-between;
       align-items: center; box-shadow: 0 18px 50px rgba(0,0,0,.35);
     }
+    .timer-info { display: flex; flex-direction: column; gap: 8px; }
     .timer-display {
       font-size: 34px; font-weight: 800; color: var(--accent);
-      font-variant-numeric: tabular-nums; transition: color 0.3s ease;
+      font-variant-numeric: tabular-nums; transition: color 0.3s ease; line-height: 1;
     }
+    .timer-presets { display: flex; gap: 6px; }
+    .preset-btn { 
+      background: var(--card-2); border: 1px solid var(--border); border-radius: 6px; 
+      color: var(--muted); font-size: 12px; padding: 4px 8px; cursor: pointer; font-weight: 600; 
+      transition: all 0.2s;
+    }
+    .preset-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(234, 179, 8, 0.1); }
+    
     .timer-controls { display: flex; gap: 10px; }
     .timer-controls button {
       background: var(--card-2); border: 1px solid var(--border); border-radius: 50%;
@@ -307,7 +317,15 @@
     </header>
 
     <section class="timer-card">
-      <div class="timer-display" id="timer-display">01:00</div>
+      <div class="timer-info">
+        <div class="timer-display" id="timer-display">01:00</div>
+        <!-- NOVOS BOTÕES DO CRONÔMETRO -->
+        <div class="timer-presets">
+          <button class="preset-btn active" data-time="60">60s</button>
+          <button class="preset-btn" data-time="90">90s</button>
+          <button class="preset-btn" data-time="120">120s</button>
+        </div>
+      </div>
       <div class="timer-controls">
         <button id="btn-play" aria-label="Play">
           <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -353,7 +371,6 @@
   </main>
 
   <script>
-    // --- LÓGICA DO PWA ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').catch(err => console.log('Erro PWA:', err));
@@ -362,7 +379,7 @@
 
     const API_URL = "https://script.google.com/macros/s/AKfycbzyCZApkumifcqQOFGWx7vXMXJ-9g2ROjMgMi_qobuHaO-xtTOFNZZlrWZ9Ev7-1fsp/exec";
 
-    // --- LÓGICA DO MENU LATERAL ---
+    // --- MENU LATERAL ---
     const menuBtn = document.getElementById("menu-btn");
     const closeMenuBtn = document.getElementById("close-menu");
     const sidebar = document.getElementById("sidebar");
@@ -410,35 +427,24 @@
           msgBusca.textContent = `${data.total} registros encontrados.`;
           msgBusca.className = "message success";
           
-          // Lógica de Agrupamento por Data e Treino
           const treinosAgrupados = {};
-          
           data.dados.forEach(item => {
             const chave = `${item.data} | ${item.treino}`;
             if (!treinosAgrupados[chave]) {
-              treinosAgrupados[chave] = {
-                data: item.data,
-                treino: item.treino,
-                exercicios: []
-              };
+              treinosAgrupados[chave] = { data: item.data, treino: item.treino, exercicios: [] };
             }
             treinosAgrupados[chave].exercicios.push(item);
           });
 
-          // Renderizando os Grupos
           Object.values(treinosAgrupados).forEach(grupo => {
             const div = document.createElement("div");
             div.className = "report-card";
-            
-            // Cabeçalho (Data e Treino) que aparece apenas uma vez por grupo
             let htmlGrupo = `
               <div style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
                 <span class="report-highlight">${escapeHtml(grupo.data)}</span> 
                 <span style="font-weight: 800; color: var(--text);">${escapeHtml(grupo.treino)}</span>
               </div>
             `;
-            
-            // Lista dos exercícios dentro daquele grupo
             grupo.exercicios.forEach(ex => {
               htmlGrupo += `
                 <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.05);">
@@ -451,7 +457,6 @@
                 </div>
               `;
             });
-            
             div.innerHTML = htmlGrupo;
             resultadoDados.appendChild(div);
           });
@@ -464,7 +469,7 @@
       }
     });
 
-    // --- LÓGICA DA PLANILHA (REGISTRO) ---
+    // --- LÓGICA DA PLANILHA (REGISTRO E FANTASMA) ---
     const treinoEl = document.getElementById("treino");
     const dataEl = document.getElementById("data");
     const exerciciosEl = document.getElementById("exercicios");
@@ -556,6 +561,7 @@
         const row = document.createElement("div");
         row.className = "exercise";
         row.dataset.index = index;
+        row.dataset.nome = ex.nome; // Usado pela busca do fantasma
 
         row.innerHTML = `
           <div class="exercise-name">
@@ -563,6 +569,7 @@
             <div class="exercise-target">
               ${escapeHtml(ex.series)} séries • ${escapeHtml(ex.reps)} reps • RIR ${escapeHtml(ex.rir)}
             </div>
+            <div class="ghost-marca" id="ghost-${index}"></div>
           </div>
           <input class="carga" type="number" min="0" step="0.5" placeholder="Carga" inputmode="decimal">
           <input class="series" type="number" min="1" step="1" value="${escapeHtml(ex.series)}" placeholder="Séries" inputmode="numeric">
@@ -574,6 +581,54 @@
       registrarBtn.disabled = treino.exercicios.length === 0;
     }
 
+    // NOVA FUNÇÃO: FANTASMA DO ÚLTIMO TREINO
+    async function buscarFantasma(nomeTreino) {
+      const ghostElements = document.querySelectorAll('.ghost-marca');
+      ghostElements.forEach(el => el.textContent = "Buscando histórico...");
+      
+      try {
+        const fim = hojeLocal();
+        const d = new Date(); d.setDate(d.getDate() - 60); // Busca últimos 60 dias
+        const inicio = d.toISOString().slice(0, 10);
+        
+        let dados = sessionStorage.getItem('dados60dias');
+        
+        if (!dados) {
+          const url = `${API_URL}?action=getDados&inicio=${inicio}&fim=${fim}&t=${Date.now()}`;
+          const resp = await fetch(url);
+          const res = await resp.json();
+          if (res.ok) {
+            dados = JSON.stringify(res.dados);
+            sessionStorage.setItem('dados60dias', dados);
+          }
+        }
+        
+        if (dados) {
+          const parsed = JSON.parse(dados);
+          const filtered = parsed.filter(i => i.treino === nomeTreino);
+          
+          const ultimasMarcas = {};
+          // Como os dados vem em ordem, o último que sobrescreve no loop é o mais recente
+          filtered.forEach(item => {
+            ultimasMarcas[item.exercicio] = item; 
+          });
+          
+          document.querySelectorAll('.exercise').forEach(row => {
+            const nomeEx = row.dataset.nome;
+            const ghostEl = row.querySelector('.ghost-marca');
+            if (ultimasMarcas[nomeEx]) {
+              const u = ultimasMarcas[nomeEx];
+              ghostEl.innerHTML = `🔥 Última marca: ${u.carga}kg | ${u.series}x${u.reps} | RIR ${u.rir}`;
+            } else {
+              ghostEl.textContent = "Nenhum registro recente";
+            }
+          });
+        }
+      } catch (e) {
+        ghostElements.forEach(el => el.textContent = "");
+      }
+    }
+
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, char => ({"&": "&amp;","<": "&lt;",">": "&gt;",'"': "&quot;","'": "&#039;"}[char]));
     }
@@ -581,6 +636,9 @@
     treinoEl.addEventListener("change", () => {
       const treino = treinos.find(t => t.nome === treinoEl.value);
       renderExercicios(treino);
+      if (treino) {
+        buscarFantasma(treino.nome); // Dispara a busca do fantasma ao selecionar o treino
+      }
     });
 
     registrarBtn.addEventListener("click", async () => {
@@ -622,6 +680,10 @@
         if (!result.ok) throw new Error(result.error || "Erro ao registrar.");
 
         showMessage(`${registros.length} exercícios registrados com sucesso.`, "success");
+        
+        // Limpa o cache da sessão para o Fantasma puxar o treino novo amanhã
+        sessionStorage.removeItem('dados60dias'); 
+
         treinoEl.value = "";             
         renderExercicios(null);          
         dataEl.value = hojeLocal();      
@@ -635,11 +697,12 @@
 
     carregarTreinos();
 
-    // --- LÓGICA DO CRONÔMETRO ---
+    // --- LÓGICA DO CRONÔMETRO COM PRESETS ---
     const timerDisplay = document.getElementById("timer-display");
     const btnPlay = document.getElementById("btn-play");
     const btnPause = document.getElementById("btn-pause");
     const btnReset = document.getElementById("btn-reset");
+    const presetBtns = document.querySelectorAll(".preset-btn");
 
     let defaultTime = 60; 
     let timeLeft = defaultTime;
@@ -650,6 +713,21 @@
       const seconds = (timeLeft % 60).toString().padStart(2, "0");
       timerDisplay.textContent = `${minutes}:${seconds}`;
     }
+
+    // Configuração dos botões rápidos (60s, 90s, 120s)
+    presetBtns.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        if (timerInterval) return; // Impede a mudança se o relógio já estiver rodando
+        
+        presetBtns.forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        
+        defaultTime = parseInt(e.target.getAttribute("data-time"));
+        timeLeft = defaultTime;
+        updateTimerDisplay();
+        timerDisplay.style.color = "var(--accent)";
+      });
+    });
 
     btnPlay.addEventListener("click", () => {
       if (timerInterval) return; 
