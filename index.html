@@ -118,18 +118,15 @@
       display: block;
       -webkit-appearance: none;
       appearance: none;
-      text-align: left; /* Garante alinhamento nos campos normais */
+      text-align: left;
     }
 
-    /* FORÇA O ALINHAMENTO DO TEXTO DA DATA NO SAFARI/IOS */
-    input[type="date"]::-webkit-datetime-edit,
-    input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+    /* FORÇA O ALINHAMENTO DO TEXTO DA DATA NO SAFARI/IOS (RESET LIMPO) */
+    input[type="date"]::-webkit-datetime-edit {
+      padding: 0; 
+    }
     input[type="date"]::-webkit-date-and-time-value {
-      text-align: left !important;
-      display: flex;
-      justify-content: flex-start;
-      padding: 0;
-      margin: 0;
+      text-align: left;
     }
 
     input[type="date"] {
@@ -375,7 +372,7 @@
         row.className = "exercise";
         row.dataset.index = index;
 
-        // ADICIONADO: type="number" e inputmode="numeric" para forçar teclado numérico
+        // Mantendo o ajuste do teclado numérico em todos os campos
         row.innerHTML = `
           <div class="exercise-name">
             ${escapeHtml(ex.nome)}
@@ -469,10 +466,10 @@
           "success"
         );
 
-        // NOVA LÓGICA DE RESET APÓS SUCESSO
-        treinoEl.value = "";             // Reseta o select de treino
-        renderExercicios(null);          // Limpa a tela de exercícios
-        dataEl.value = hojeLocal();      // Devolve a data para o dia atual
+        // Reset após sucesso (Mantido)
+        treinoEl.value = "";             
+        renderExercicios(null);          
+        dataEl.value = hojeLocal();      
 
       } catch (error) {
         showMessage(error.message, "error");
