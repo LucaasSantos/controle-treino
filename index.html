@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Treino</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <div>
+        <div class="eyebrow">DIÁRIO DE TREINO</div>
+        <h1>Controle de Treino</h1>
+        <p>Registre sua sessão e acompanhe sua evolução.</p>
+      </div>
+      <div class="status" id="status">Conectando...</div>
+    </header>
+
+    <section class="card">
+      <div class="card-title">
+        <div>
+          <h2>Nova sessão</h2>
+          <span>Preencha os dados do treino realizado.</span>
+        </div>
+      </div>
+
+      <div class="top-fields">
+        <label>
+          DATA
+          <input type="date" id="data">
+        </label>
+
+        <label>
+          TREINO
+          <select id="treino">
+            <option value="">Selecione o treino</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="exercicios" class="exercise-list">
+        <div class="empty">Selecione um treino para carregar os exercícios.</div>
+      </div>
+
+      <button id="registrar" class="primary" disabled>Registrar treino</button>
+      <div id="mensagem" class="message"></div>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
