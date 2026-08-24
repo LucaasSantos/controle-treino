@@ -122,12 +122,10 @@
     }
 
     /* ------------------------------------------------------------- */
-    /* NOVA ABORDAGEM DE ALINHAMENTO PARA O SAFARI/IOS (FLEXBOX)     */
+    /* CORREÇÃO DEFINITIVA DA DATA: PC + CELULAR                     */
     /* ------------------------------------------------------------- */
     input[type="date"] {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
+      position: relative;
       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23a1a1aa%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2218%22%20rx%3D%222%22%20ry%3D%222%22%3E%3C%2Frect%3E%3Cline%20x1%3D%2216%22%20y1%3D%222%22%20x2%3D%2216%22%20y2%3D%226%22%3E%3C%2Fline%3E%3Cline%20x1%3D%228%22%20y1%3D%222%22%20x2%3D%228%22%20y2%3D%226%22%3E%3C%2Fline%3E%3Cline%20x1%3D%223%22%20y1%3D%2210%22%20x2%3D%2221%22%20y2%3D%2210%22%3E%3C%2Fline%3E%3C%2Fsvg%3E");
       background-repeat: no-repeat;
       background-position: right 13px top 50%;
@@ -136,19 +134,24 @@
     }
 
     input[type="date"]::-webkit-datetime-edit {
-      flex: 1;
       padding: 0; 
-      text-align: left;
-    }
-    
-    input[type="date"]::-webkit-datetime-edit-fields-wrapper {
-      padding: 0;
       text-align: left;
     }
 
     input[type="date"]::-webkit-date-and-time-value {
       text-align: left;
       margin: 0;
+    }
+
+    /* Oculta o ícone preto nativo do PC, mas o deixa clicável em cima do nosso SVG */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 40px;
+      height: 100%;
+      opacity: 0; /* Invisível, mas funcional */
+      cursor: pointer;
     }
     /* ------------------------------------------------------------- */
 
@@ -286,7 +289,6 @@
   </main>
 
   <script>
-    // URL de implantação da sua API do Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbzyCZApkumifcqQOFGWx7vXMXJ-9g2ROjMgMi_qobuHaO-xtTOFNZZlrWZ9Ev7-1fsp/exec";
 
     const treinoEl = document.getElementById("treino");
