@@ -20,12 +20,6 @@ function showMessage(text, type = "") {
   mensagemEl.className = `message ${type}`;
 }
 
-async function apiGet() {
-  const response = await fetch(`${API_URL}?action=getTreinos`, { cache: "no-store" });
-  if (!response.ok) throw new Error("Não foi possível consultar a planilha.");
-  return response.json();
-}
-
 async function carregarTreinos() {
   if (!API_URL || API_URL.includes("COLE_AQUI")) {
     statusEl.textContent = "Configure a API";
@@ -34,10 +28,26 @@ async function carregarTreinos() {
   }
 
   try {
-    const data = await apiGet();
-    treinos = data.treinos || [];
+    statusEl.textContent = "Consultando planilha...";
+
+    const response = await fetch(`${API_URL}?action=getTreinos&t=${Date.now()}`, {
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.ok) {
+      throw new Error(data.error || "O Apps Script retornou um erro.");
+    }
+
+    treinos = Array.isArray(data.treinos) ? data.treinos : [];
 
     treinoEl.innerHTML = '<option value="">Selecione o treino</option>';
+
     treinos.forEach(t => {
       const option = document.createElement("option");
       option.value = t.nome;
@@ -45,10 +55,20 @@ async function carregarTreinos() {
       treinoEl.appendChild(option);
     });
 
-    statusEl.textContent = "Planilha conectada";
+    if (treinos.length === 0) {
+      statusEl.textContent = "Conectada • 0 treinos";
+      showMessage(
+        'A planilha respondeu, mas nenhum treino foi encontrado na aba "INÍCIO". Verifique o Apps Script e faça uma nova implantação.',
+        "error"
+      );
+      return;
+    }
+
+    statusEl.textContent = `Planilha conectada • ${treinos.length} treinos`;
+    showMessage("");
   } catch (error) {
     statusEl.textContent = "Erro de conexão";
-    showMessage(error.message, "error");
+    showMessage(`Não foi possível carregar os treinos: ${error.message}`, "error");
   }
 }
 
@@ -57,7 +77,8 @@ function renderExercicios(treino) {
   registrarBtn.disabled = true;
 
   if (!treino) {
-    exerciciosEl.innerHTML = '<div class="empty">Selecione um treino para carregar os exercícios.</div>';
+    exerciciosEl.innerHTML =
+      '<div class="empty">Selecione um treino para carregar os exercícios.</div>';
     return;
   }
 
@@ -69,11 +90,13 @@ function renderExercicios(treino) {
     row.innerHTML = `
       <div class="exercise-name">
         ${escapeHtml(ex.nome)}
-        <div class="exercise-target">${escapeHtml(ex.reps)} reps • RIR ${escapeHtml(ex.rir)}</div>
+        <div class="exercise-target">
+          ${escapeHtml(ex.series)} séries • ${escapeHtml(ex.reps)} reps • RIR ${escapeHtml(ex.rir)}
+        </div>
       </div>
 
       <input class="carga" type="number" min="0" step="0.5" placeholder="Carga" inputmode="decimal">
-      <input class="series" type="number" min="1" step="1" value="${ex.series}" placeholder="Séries" inputmode="numeric">
+      <input class="series" type="number" min="1" step="1" value="${escapeHtml(ex.series)}" placeholder="Séries" inputmode="numeric">
       <input class="repeticoes" type="text" placeholder="Reps">
       <input class="rir" type="text" placeholder="RIR">
     `;
@@ -81,12 +104,16 @@ function renderExercicios(treino) {
     exerciciosEl.appendChild(row);
   });
 
-  registrarBtn.disabled = false;
+  registrarBtn.disabled = treino.exercicios.length === 0;
 }
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
   }[char]));
 }
 
@@ -105,6 +132,7 @@ registrarBtn.addEventListener("click", async () => {
   for (const row of rows) {
     const index = Number(row.dataset.index);
     const ex = treino.exercicios[index];
+
     const carga = row.querySelector(".carga").value.trim();
     const series = row.querySelector(".series").value.trim();
     const repeticoes = row.querySelector(".repeticoes").value.trim();
@@ -131,7 +159,6 @@ registrarBtn.addEventListener("click", async () => {
   showMessage("");
 
   try {
-    // POST como form-urlencoded evita preflight CORS no Google Apps Script.
     const body = new URLSearchParams({
       action: "registrarTreino",
       payload: JSON.stringify(registros)
@@ -143,11 +170,19 @@ registrarBtn.addEventListener("click", async () => {
     });
 
     const result = await response.json();
-    if (!result.ok) throw new Error(result.error || "Erro ao registrar.");
 
-    showMessage(`${registros.length} exercícios registrados com sucesso.`, "success");
+    if (!result.ok) {
+      throw new Error(result.error || "Erro ao registrar.");
+    }
 
-    document.querySelectorAll(".carga, .repeticoes, .rir").forEach(input => input.value = "");
+    showMessage(
+      `${registros.length} exercícios registrados com sucesso.`,
+      "success"
+    );
+
+    document.querySelectorAll(".carga, .repeticoes, .rir").forEach(input => {
+      input.value = "";
+    });
   } catch (error) {
     showMessage(error.message, "error");
   } finally {
