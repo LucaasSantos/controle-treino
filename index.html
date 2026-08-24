@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Controle de Treino</title>
+  
   <!-- Configurações PWA e iOS -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#09090b">
@@ -11,6 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Treino">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2964/2964514.png">
+
   <style>
     * { box-sizing: border-box; }
 
@@ -128,14 +130,12 @@
       text-align: left;
     }
 
-    /* ------------------------------------------------------------- */
-    /* CORREÇÃO DEFINITIVA DA DATA: PAZ ENTRE PC E CELULAR           */
-    /* ------------------------------------------------------------- */
+    /* DATA - PAZ ENTRE PC E CELULAR */
     input[type="date"] {
-      display: flex;               /* Devolve a regra que alinha no Celular */
+      display: flex;               
       align-items: center;
       justify-content: flex-start;
-      position: relative;          /* Segura o ícone nativo do PC no lugar */
+      position: relative;          
       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23a1a1aa%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2218%22%20rx%3D%222%22%20ry%3D%222%22%3E%3C%2Frect%3E%3Cline%20x1%3D%2216%22%20y1%3D%222%22%20x2%3D%2216%22%20y2%3D%226%22%3E%3C%2Fline%3E%3Cline%20x1%3D%228%22%20y1%3D%222%22%20x2%3D%228%22%20y2%3D%226%22%3E%3C%2Fline%3E%3Cline%20x1%3D%223%22%20y1%3D%2210%22%20x2%3D%2221%22%20y2%3D%2210%22%3E%3C%2Fline%3E%3C%2Fsvg%3E");
       background-repeat: no-repeat;
       background-position: right 13px top 50%;
@@ -144,7 +144,7 @@
     }
 
     input[type="date"]::-webkit-datetime-edit {
-      flex: 1;                     /* Garante espaço e alinhamento no Celular */
+      flex: 1;                     
       padding: 0; 
       text-align: left;
     }
@@ -154,7 +154,6 @@
       margin: 0;
     }
 
-    /* Oculta o ícone preto nativo do PC, mas deixa ele sobreposto clicável */
     input[type="date"]::-webkit-calendar-picker-indicator {
       position: absolute;
       right: 0;
@@ -164,7 +163,6 @@
       opacity: 0;
       cursor: pointer;
     }
-    /* ------------------------------------------------------------- */
 
     select {
       cursor: pointer;
@@ -244,6 +242,52 @@
     .message.success { color: var(--success); }
     .message.error { color: var(--danger); }
 
+    /* --- ESTILOS DO NOVO CRONÔMETRO --- */
+    .timer-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 24px;
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
+    .timer-display {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums; /* Evita que os números fiquem pulando de tamanho */
+      transition: color 0.3s ease;
+    }
+    .timer-controls {
+      display: flex;
+      gap: 10px;
+    }
+    .timer-controls button {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .timer-controls button:hover, .timer-controls button:active {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .timer-controls svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+    }
+
     @media (max-width: 760px) {
       .header { align-items: flex-start; flex-direction: column; }
       .top-fields { flex-direction: column; } 
@@ -254,6 +298,7 @@
     @media (max-width: 430px) {
       .container { width: 100%; padding: 22px 16px; }
       .card { padding: 16px; }
+      .timer-card { padding: 16px; }
     }
   </style>
 </head>
@@ -263,7 +308,7 @@
       <div>
         <div class="eyebrow">DIÁRIO DE TREINO</div>
         <h1>Lucas</h1>
-        <p>Se você não fizer, ninguem faz.</p>
+        <p>Niguém vem te salvar.</p>
       </div>
       <div class="status" id="status">Conectando...</div>
     </header>
@@ -297,9 +342,36 @@
       <button id="registrar" class="primary" disabled>Registrar treino</button>
       <div id="mensagem" class="message"></div>
     </section>
+
+    <!-- SESSÃO DO CRONÔMETRO -->
+    <section class="timer-card">
+      <div class="timer-display" id="timer-display">01:00</div>
+      <div class="timer-controls">
+        <button id="btn-play" aria-label="Play">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
+        <button id="btn-pause" aria-label="Pause">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button id="btn-reset" aria-label="Reset">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+        </button>
+      </div>
+    </section>
+
   </main>
 
   <script>
+    // --- LÓGICA DO PWA ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA ativado!', reg))
+          .catch(err => console.log('Erro PWA:', err));
+      });
+    }
+
+    // --- LÓGICA DA PLANILHA ---
     const API_URL = "https://script.google.com/macros/s/AKfycbzyCZApkumifcqQOFGWx7vXMXJ-9g2ROjMgMi_qobuHaO-xtTOFNZZlrWZ9Ev7-1fsp/exec";
 
     const treinoEl = document.getElementById("treino");
@@ -506,16 +578,62 @@
     });
 
     carregarTreinos();
-  </script>
-  <script>
-    // Registra o Service Worker do PWA
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('PWA ativado com sucesso!', reg))
-          .catch(err => console.log('Erro ao ativar PWA:', err));
-      });
+
+    // --- LÓGICA DO CRONÔMETRO ---
+    const timerDisplay = document.getElementById("timer-display");
+    const btnPlay = document.getElementById("btn-play");
+    const btnPause = document.getElementById("btn-pause");
+    const btnReset = document.getElementById("btn-reset");
+
+    let defaultTime = 60; // Tempo em segundos
+    let timeLeft = defaultTime;
+    let timerInterval = null;
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeLeft / 60).toString().padStart(2, "0");
+      const seconds = (timeLeft % 60).toString().padStart(2, "0");
+      timerDisplay.textContent = `${minutes}:${seconds}`;
     }
+
+    btnPlay.addEventListener("click", () => {
+      if (timerInterval) return; 
+      
+      // Reseta a cor caso tenha acabado recentemente
+      timerDisplay.style.color = "var(--accent)";
+
+      timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          updateTimerDisplay();
+        } else {
+          // Quando chega a zero
+          clearInterval(timerInterval);
+          timerInterval = null;
+          
+          // Pisca verde para avisar que acabou
+          timerDisplay.style.color = "var(--success)";
+          setTimeout(() => {
+            timeLeft = defaultTime;
+            updateTimerDisplay();
+            timerDisplay.style.color = "var(--accent)";
+          }, 3000); // Volta ao normal após 3 segundos
+        }
+      }, 1000);
+    });
+
+    btnPause.addEventListener("click", () => {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    });
+
+    btnReset.addEventListener("click", () => {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timeLeft = defaultTime;
+      updateTimerDisplay();
+      timerDisplay.style.color = "var(--accent)";
+    });
+
   </script>
 </body>
 </html>
