@@ -242,13 +242,13 @@
     .message.success { color: var(--success); }
     .message.error { color: var(--danger); }
 
-    /* --- ESTILOS DO NOVO CRONÔMETRO --- */
+    /* --- ESTILOS DO CRONÔMETRO NO TOPO --- */
     .timer-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 18px 24px;
-      margin-top: 16px;
+      margin-bottom: 24px; /* Ajuste para dar espaço antes de "Nova sessão" */
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -258,7 +258,7 @@
       font-size: 34px;
       font-weight: 800;
       color: var(--accent);
-      font-variant-numeric: tabular-nums; /* Evita que os números fiquem pulando de tamanho */
+      font-variant-numeric: tabular-nums; 
       transition: color 0.3s ease;
     }
     .timer-controls {
@@ -307,11 +307,27 @@
     <header class="header">
       <div>
         <div class="eyebrow">DIÁRIO DE TREINO</div>
-        <h1>Lucas</h1>
-        <p>Niguém vem te salvar.</p>
+        <h1>Ei, Lucas!</h1>
+        <p>Ninguém vem te salvar, acorde!.</p>
       </div>
       <div class="status" id="status">Conectando...</div>
     </header>
+
+    <!-- SESSÃO DO CRONÔMETRO (MOVIDA PARA O TOPO) -->
+    <section class="timer-card">
+      <div class="timer-display" id="timer-display">01:00</div>
+      <div class="timer-controls">
+        <button id="btn-play" aria-label="Play">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
+        <button id="btn-pause" aria-label="Pause">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button id="btn-reset" aria-label="Reset">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+        </button>
+      </div>
+    </section>
 
     <section class="card">
       <div class="card-title">
@@ -341,22 +357,6 @@
 
       <button id="registrar" class="primary" disabled>Registrar treino</button>
       <div id="mensagem" class="message"></div>
-    </section>
-
-    <!-- SESSÃO DO CRONÔMETRO -->
-    <section class="timer-card">
-      <div class="timer-display" id="timer-display">01:00</div>
-      <div class="timer-controls">
-        <button id="btn-play" aria-label="Play">
-          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-        </button>
-        <button id="btn-pause" aria-label="Pause">
-          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-        </button>
-        <button id="btn-reset" aria-label="Reset">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-        </button>
-      </div>
     </section>
 
   </main>
@@ -585,7 +585,7 @@
     const btnPause = document.getElementById("btn-pause");
     const btnReset = document.getElementById("btn-reset");
 
-    let defaultTime = 60; // Tempo em segundos
+    let defaultTime = 60; 
     let timeLeft = defaultTime;
     let timerInterval = null;
 
@@ -598,7 +598,6 @@
     btnPlay.addEventListener("click", () => {
       if (timerInterval) return; 
       
-      // Reseta a cor caso tenha acabado recentemente
       timerDisplay.style.color = "var(--accent)";
 
       timerInterval = setInterval(() => {
@@ -606,17 +605,15 @@
           timeLeft--;
           updateTimerDisplay();
         } else {
-          // Quando chega a zero
           clearInterval(timerInterval);
           timerInterval = null;
           
-          // Pisca verde para avisar que acabou
           timerDisplay.style.color = "var(--success)";
           setTimeout(() => {
             timeLeft = defaultTime;
             updateTimerDisplay();
             timerDisplay.style.color = "var(--accent)";
-          }, 3000); // Volta ao normal após 3 segundos
+          }, 3000); 
         }
       }, 1000);
     });
