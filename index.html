@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Controle de Treino</title>
+  <!-- Configurações PWA e iOS -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#09090b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Treino">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2964/2964514.png">
   <style>
     * { box-sizing: border-box; }
 
@@ -499,6 +506,16 @@
     });
 
     carregarTreinos();
+  </script>
+  <script>
+    // Registra o Service Worker do PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA ativado com sucesso!', reg))
+          .catch(err => console.log('Erro ao ativar PWA:', err));
+      });
+    }
   </script>
 </body>
 </html>
