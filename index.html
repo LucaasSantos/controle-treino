@@ -81,7 +81,7 @@
     .card-title h2 { font-size: 20px; }
     .card-title span { color: var(--muted); font-size: 13px; display: block; margin-top: 5px; }
 
-    /* CORREÇÃO DO GRID PARA O SAFARI: Uso de minmax(0, 1fr) */
+    /* CORREÇÃO DO GRID PARA O SAFARI */
     .top-fields {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -102,7 +102,7 @@
     /* CORREÇÃO DOS CAMPOS VAZANDO NO IOS */
     input, select {
       width: 100%;
-      min-width: 0; /* Essencial para impedir vazamento no flex/grid do Safari */
+      min-width: 0; 
       max-width: 100%;
       margin-top: 8px;
       height: 46px;
@@ -189,7 +189,7 @@
     .message.success { color: var(--success); }
     .message.error { color: var(--danger); }
 
-    /* RESPONSIVIDADE COM REGRAS RÍGIDAS CONTRA ESTOURO NO MOBILE */
+    /* RESPONSIVIDADE */
     @media (max-width: 760px) {
       .header { align-items: flex-start; flex-direction: column; }
       .top-fields { grid-template-columns: minmax(0, 1fr); }
@@ -271,6 +271,17 @@
       mensagemEl.className = `message ${type}`;
     }
 
+    // Função auxiliar para popular o campo "TREINO"
+    function popularSelectTreinos() {
+      treinoEl.innerHTML = '<option value="">Selecione o treino</option>';
+      treinos.forEach(t => {
+        const option = document.createElement("option");
+        option.value = t.nome;
+        option.textContent = t.nome;
+        treinoEl.appendChild(option);
+      });
+    }
+
     async function carregarTreinos() {
       if (!API_URL || API_URL.includes("COLE_AQUI")) {
         statusEl.textContent = "Configure a API";
@@ -278,48 +289,50 @@
         return;
       }
 
-      try {
+      // 1. CARREGAMENTO INSTANTÂNEO PELO CACHE DO NAVEGADOR
+      const cacheLocal = localStorage.getItem("treinosCacheXAU");
+      if (cacheLocal) {
+        try {
+          treinos = JSON.parse(cacheLocal);
+          popularSelectTreinos();
+          statusEl.textContent = `Carregado offline • ${treinos.length} treinos`;
+        } catch (e) {
+          console.error("Erro ao ler cache local");
+        }
+      } else {
         statusEl.textContent = "Consultando planilha...";
+      }
 
-        const response = await fetch(`${API_URL}?action=getTreinos&t=${Date.now()}`, {
-          cache: "no-store"
-        });
+      // 2. BUSCA EM SEGUNDO PLANO PARA ATUALIZAR
+      try {
+        const response = await fetch(`${API_URL}?action=getTreinos&t=${Date.now()}`);
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
         const data = await response.json();
-
-        if (!data.ok) {
-          throw new Error(data.error || "O Apps Script retornou um erro.");
-        }
+        if (!data.ok) throw new Error(data.error || "Erro no Apps Script.");
 
         treinos = Array.isArray(data.treinos) ? data.treinos : [];
 
-        treinoEl.innerHTML = '<option value="">Selecione o treino</option>';
-
-        treinos.forEach(t => {
-          const option = document.createElement("option");
-          option.value = t.nome;
-          option.textContent = t.nome;
-          treinoEl.appendChild(option);
-        });
+        // Atualiza a tela e o cache local com os dados novos da planilha
+        popularSelectTreinos();
+        localStorage.setItem("treinosCacheXAU", JSON.stringify(treinos));
 
         if (treinos.length === 0) {
           statusEl.textContent = "Conectada • 0 treinos";
-          showMessage(
-            'A planilha respondeu, mas nenhum treino foi encontrado na aba "INÍCIO". Verifique o Apps Script e faça uma nova implantação.',
-            "error"
-          );
+          showMessage('Nenhum treino encontrado na aba "INÍCIO".', "error");
           return;
         }
 
-        statusEl.textContent = `Planilha conectada • ${treinos.length} treinos`;
+        statusEl.textContent = `Sincronizado • ${treinos.length} treinos`;
         showMessage("");
       } catch (error) {
-        statusEl.textContent = "Erro de conexão";
-        showMessage(`Não foi possível carregar os treinos: ${error.message}`, "error");
+        if (!cacheLocal) {
+          statusEl.textContent = "Erro de conexão";
+          showMessage(`Não foi possível carregar os treinos: ${error.message}`, "error");
+        } else {
+          statusEl.textContent = `Modo Offline • ${treinos.length} treinos`;
+        }
       }
     }
 
