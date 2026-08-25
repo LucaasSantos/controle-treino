@@ -182,7 +182,6 @@
       text-align: left;
     }
 
-    /* DATA - PAZ ENTRE PC E CELULAR */
     input[type="date"] {
       display: flex;               
       align-items: center;
@@ -209,18 +208,59 @@
 
     input:focus, select:focus { border-color: var(--accent); }
 
-    .exercise-list { display: grid; gap: 10px; }
+    /* --- NOVA ESTRUTURA DOS BLOCOS DE EXERCÍCIOS --- */
+    .exercise-list { display: grid; gap: 14px; }
 
-    .exercise {
-      display: grid;
-      grid-template-columns: minmax(220px, 1fr) 90px 110px 90px 90px;
-      gap: 10px; align-items: center; padding: 13px;
-      background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
+    .exercise-block {
+      background: var(--card-2); 
+      border: 1px solid var(--border); 
+      border-radius: 12px; 
+      padding: 16px;
     }
-    .exercise-name { font-weight: 650; font-size: 14px; line-height: 1.35; }
-    .exercise-target { color: var(--muted); font-size: 11px; margin-top: 4px; }
-    .ghost-marca { color: var(--accent); font-size: 11px; font-weight: 700; margin-top: 6px; display: block; opacity: 0.9; }
-    .exercise input { margin-top: 0; height: 42px; }
+    
+    .exercise-header {
+      margin-bottom: 12px;
+      border-bottom: 1px dashed rgba(255,255,255,0.1);
+      padding-bottom: 12px;
+    }
+    
+    .exercise-name { 
+      font-weight: 650; 
+      font-size: 15px; 
+      color: var(--text);
+    }
+    
+    .ghost-marca { 
+      color: var(--accent); 
+      font-size: 11px; 
+      font-weight: 700; 
+      margin-top: 6px; 
+      display: block; 
+      opacity: 0.9; 
+    }
+
+    .set-row {
+      display: grid;
+      grid-template-columns: 55px 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .set-row:last-child { margin-bottom: 0; }
+
+    .set-row span {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .set-row input {
+      margin-top: 0;
+      height: 40px;
+      text-align: center;
+      padding: 0 4px;
+    }
 
     .empty {
       border: 1px dashed var(--border); border-radius: 12px; padding: 26px;
@@ -270,14 +310,14 @@
     @media (max-width: 760px) {
       .header { align-items: flex-start; flex-direction: column; gap: 16px; }
       .top-fields { flex-direction: column; } 
-      .exercise { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-      .exercise-name { grid-column: 1 / -1; }
     }
 
     @media (max-width: 430px) {
       .container { width: 100%; padding: 22px 16px; }
       .card { padding: 16px; }
       .timer-card { padding: 16px; }
+      .set-row { grid-template-columns: 45px 1fr 1fr 1fr; gap: 6px; }
+      .set-row span { font-size: 11px; }
     }
   </style>
 </head>
@@ -319,7 +359,6 @@
     <section class="timer-card">
       <div class="timer-info">
         <div class="timer-display" id="timer-display">01:00</div>
-        <!-- NOVOS BOTÕES DO CRONÔMETRO -->
         <div class="timer-presets">
           <button class="preset-btn active" data-time="60">60s</button>
           <button class="preset-btn" data-time="90">90s</button>
@@ -393,7 +432,7 @@
     closeMenuBtn.addEventListener("click", toggleMenu);
     menuOverlay.addEventListener("click", toggleMenu);
 
-    // --- BUSCA E AGRUPAMENTO DE DADOS ---
+    // --- BUSCA E AGRUPAMENTO DE DADOS NA BARRA LATERAL ---
     const btnBuscarDados = document.getElementById("btn-buscar-dados");
     const msgBusca = document.getElementById("msg-busca");
     const resultadoDados = document.getElementById("resultado-dados");
@@ -424,39 +463,56 @@
           msgBusca.textContent = "Nenhum dado encontrado no período.";
           msgBusca.className = "message error";
         } else {
-          msgBusca.textContent = `${data.total} registros encontrados.`;
+          msgBusca.textContent = `${data.total} séries encontradas.`;
           msgBusca.className = "message success";
           
+          // Agrupamento Nível 1: Data e Treino
+          // Agrupamento Nível 2: Exercício (já que agora temos várias séries por exercício)
           const treinosAgrupados = {};
           data.dados.forEach(item => {
-            const chave = `${item.data} | ${item.treino}`;
-            if (!treinosAgrupados[chave]) {
-              treinosAgrupados[chave] = { data: item.data, treino: item.treino, exercicios: [] };
+            const chaveTreino = `${item.data} | ${item.treino}`;
+            if (!treinosAgrupados[chaveTreino]) {
+              treinosAgrupados[chaveTreino] = { data: item.data, treino: item.treino, exercicios: {} };
             }
-            treinosAgrupados[chave].exercicios.push(item);
+            if (!treinosAgrupados[chaveTreino].exercicios[item.exercicio]) {
+              treinosAgrupados[chaveTreino].exercicios[item.exercicio] = [];
+            }
+            treinosAgrupados[chaveTreino].exercicios[item.exercicio].push(item);
           });
 
           Object.values(treinosAgrupados).forEach(grupo => {
             const div = document.createElement("div");
             div.className = "report-card";
+            
+            // Cabeçalho do Treino
             let htmlGrupo = `
               <div style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
                 <span class="report-highlight">${escapeHtml(grupo.data)}</span> 
                 <span style="font-weight: 800; color: var(--text);">${escapeHtml(grupo.treino)}</span>
               </div>
             `;
-            grupo.exercicios.forEach(ex => {
+            
+            // Renderiza cada exercício agrupado
+            Object.entries(grupo.exercicios).forEach(([nomeEx, sets]) => {
               htmlGrupo += `
                 <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.05);">
-                  <div style="font-weight: 600; font-size: 13px; color: var(--text);">${escapeHtml(ex.exercicio)}</div>
-                  <div style="color: var(--muted); font-size: 11px; margin-top: 4px; display: flex; gap: 10px;">
-                    <span>Carga: <strong>${escapeHtml(ex.carga)}</strong></span>
-                    <span>Séries: <strong>${escapeHtml(ex.series)}x${escapeHtml(ex.reps)}</strong></span>
-                    <span>RIR: <strong>${escapeHtml(ex.rir)}</strong></span>
-                  </div>
-                </div>
+                  <div style="font-weight: 600; font-size: 13px; color: var(--text); margin-bottom: 6px;">${escapeHtml(nomeEx)}</div>
               `;
+              
+              // Renderiza cada série desse exercício
+              sets.forEach(s => {
+                htmlGrupo += `
+                  <div style="color: var(--muted); font-size: 11px; margin-top: 4px; display: flex; gap: 8px;">
+                    <span style="width: 45px; font-weight: 700;">Série ${escapeHtml(s.series)}:</span>
+                    <span>Carga: <strong style="color:var(--text)">${escapeHtml(s.carga)}</strong></span>
+                    <span>Reps: <strong style="color:var(--text)">${escapeHtml(s.reps)}</strong></span>
+                    <span>RIR: <strong style="color:var(--text)">${escapeHtml(s.rir)}</strong></span>
+                  </div>
+                `;
+              });
+              htmlGrupo += `</div>`;
             });
+
             div.innerHTML = htmlGrupo;
             resultadoDados.appendChild(div);
           });
@@ -548,6 +604,7 @@
       }
     }
 
+    // --- NOVA CONSTRUÇÃO DOS EXERCÍCIOS E SÉRIES ---
     function renderExercicios(treino) {
       exerciciosEl.innerHTML = "";
       registrarBtn.disabled = true;
@@ -558,37 +615,48 @@
       }
 
       treino.exercicios.forEach((ex, index) => {
-        const row = document.createElement("div");
-        row.className = "exercise";
-        row.dataset.index = index;
-        row.dataset.nome = ex.nome; // Usado pela busca do fantasma
+        // Converte a string de séries (ex: "3") para número
+        const numSets = parseInt(ex.series) || 1;
+        
+        const block = document.createElement("div");
+        block.className = "exercise-block";
+        block.dataset.nome = ex.nome;
 
-        row.innerHTML = `
-          <div class="exercise-name">
-            ${escapeHtml(ex.nome)}
-            <div class="exercise-target">
-              ${escapeHtml(ex.series)} séries • ${escapeHtml(ex.reps)} reps • RIR ${escapeHtml(ex.rir)}
+        // Gera as linhas individuais para cada série
+        let setsHtml = '';
+        for(let i = 1; i <= numSets; i++) {
+          setsHtml += `
+            <div class="set-row" data-set="${i}">
+              <span>Série ${i}</span>
+              <input class="carga" type="number" min="0" step="0.5" placeholder="Carga" inputmode="decimal">
+              <input class="repeticoes" type="number" min="0" step="1" placeholder="Reps" inputmode="numeric">
+              <input class="rir" type="number" min="0" step="1" placeholder="RIR" inputmode="numeric">
             </div>
-            <div class="ghost-marca" id="ghost-${index}"></div>
+          `;
+        }
+
+        block.innerHTML = `
+          <div class="exercise-header">
+            <div class="exercise-name">${escapeHtml(ex.nome)} <span style="font-size: 11px; color: var(--muted); font-weight: normal;">(Alvo: ${escapeHtml(ex.reps)} reps)</span></div>
+            <div class="ghost-marca"></div>
           </div>
-          <input class="carga" type="number" min="0" step="0.5" placeholder="Carga" inputmode="decimal">
-          <input class="series" type="number" min="1" step="1" value="${escapeHtml(ex.series)}" placeholder="Séries" inputmode="numeric">
-          <input class="repeticoes" type="number" min="0" step="1" placeholder="Reps" inputmode="numeric">
-          <input class="rir" type="number" min="0" step="1" placeholder="RIR" inputmode="numeric">
+          <div class="sets-container">
+            ${setsHtml}
+          </div>
         `;
-        exerciciosEl.appendChild(row);
+        exerciciosEl.appendChild(block);
       });
       registrarBtn.disabled = treino.exercicios.length === 0;
     }
 
-    // NOVA FUNÇÃO: FANTASMA DO ÚLTIMO TREINO
+    // --- NOVO FANTASMA: LENDO MÚLTIPLAS SÉRIES ---
     async function buscarFantasma(nomeTreino) {
       const ghostElements = document.querySelectorAll('.ghost-marca');
       ghostElements.forEach(el => el.textContent = "Buscando histórico...");
       
       try {
         const fim = hojeLocal();
-        const d = new Date(); d.setDate(d.getDate() - 60); // Busca últimos 60 dias
+        const d = new Date(); d.setDate(d.getDate() - 60); 
         const inicio = d.toISOString().slice(0, 10);
         
         let dados = sessionStorage.getItem('dados60dias');
@@ -607,18 +675,34 @@
           const parsed = JSON.parse(dados);
           const filtered = parsed.filter(i => i.treino === nomeTreino);
           
+          if (filtered.length === 0) {
+            ghostElements.forEach(el => el.textContent = "Nenhum registro recente");
+            return;
+          }
+
+          // Pega a data da última sessão deste treino específico
+          const ultimaDataStr = filtered[filtered.length - 1].data;
+          const ultimaSessao = filtered.filter(i => i.data === ultimaDataStr);
+
+          // Agrupa os exercícios dessa sessão específica para montar o Fantasma
           const ultimasMarcas = {};
-          // Como os dados vem em ordem, o último que sobrescreve no loop é o mais recente
-          filtered.forEach(item => {
-            ultimasMarcas[item.exercicio] = item; 
+          ultimaSessao.forEach(item => {
+            if(!ultimasMarcas[item.exercicio]) ultimasMarcas[item.exercicio] = [];
+            ultimasMarcas[item.exercicio].push(item);
           });
           
-          document.querySelectorAll('.exercise').forEach(row => {
-            const nomeEx = row.dataset.nome;
-            const ghostEl = row.querySelector('.ghost-marca');
+          document.querySelectorAll('.exercise-block').forEach(block => {
+            const nomeEx = block.dataset.nome;
+            const ghostEl = block.querySelector('.ghost-marca');
+            
             if (ultimasMarcas[nomeEx]) {
-              const u = ultimasMarcas[nomeEx];
-              ghostEl.innerHTML = `🔥 Última marca: ${u.carga}kg | ${u.series}x${u.reps} | RIR ${u.rir}`;
+              const sets = ultimasMarcas[nomeEx];
+              // Identifica a maior carga usada no exercício
+              const maxCarga = Math.max(...sets.map(s => Number(s.carga.replace(',','.')) || 0));
+              // Junta todas as repetições (ex: 10/10/8)
+              const repsHist = sets.map(s => s.reps).join('/');
+              
+              ghostEl.innerHTML = `🔥 Último treino (${ultimaDataStr}): Máx ${maxCarga}kg | Reps: ${repsHist}`;
             } else {
               ghostEl.textContent = "Nenhum registro recente";
             }
@@ -637,35 +721,44 @@
       const treino = treinos.find(t => t.nome === treinoEl.value);
       renderExercicios(treino);
       if (treino) {
-        buscarFantasma(treino.nome); // Dispara a busca do fantasma ao selecionar o treino
+        buscarFantasma(treino.nome); 
       }
     });
 
+    // --- NOVA LÓGICA DE REGISTRO: VARRENDO TODAS AS SÉRIES INDIVIDUAIS ---
     registrarBtn.addEventListener("click", async () => {
       const treino = treinos.find(t => t.nome === treinoEl.value);
       if (!treino) return;
 
-      const rows = [...document.querySelectorAll(".exercise")];
+      const blocks = [...document.querySelectorAll(".exercise-block")];
       const registros = [];
 
-      for (const row of rows) {
-        const index = Number(row.dataset.index);
-        const ex = treino.exercicios[index];
+      for (const block of blocks) {
+        const exNome = block.dataset.nome;
+        const setRows = block.querySelectorAll(".set-row");
 
-        const carga = row.querySelector(".carga").value.trim();
-        const series = row.querySelector(".series").value.trim();
-        const repeticoes = row.querySelector(".repeticoes").value.trim();
-        const rir = row.querySelector(".rir").value.trim();
+        for (const row of setRows) {
+          const setIndex = row.dataset.set;
+          const carga = row.querySelector(".carga").value.trim();
+          const repeticoes = row.querySelector(".repeticoes").value.trim();
+          const rir = row.querySelector(".rir").value.trim();
 
-        if (!carga || !series || !repeticoes || !rir) {
-          showMessage(`Preencha todos os campos de "${ex.nome}".`, "error");
-          return;
+          // Obriga a preencher todas as séries
+          if (!carga || !repeticoes || !rir) {
+            showMessage(`Preencha todos os campos da Série ${setIndex} do exercício "${exNome}".`, "error");
+            return;
+          }
+
+          registros.push({
+            data: dataEl.value, 
+            treino: treino.nome, 
+            exercicio: exNome,
+            carga, 
+            series: setIndex, // Agora grava a Série 1, 2, 3...
+            repeticoes, 
+            rir
+          });
         }
-
-        registros.push({
-          data: dataEl.value, treino: treino.nome, exercicio: ex.nome,
-          carga, series, repeticoes, rir
-        });
       }
 
       registrarBtn.disabled = true;
@@ -679,9 +772,7 @@
 
         if (!result.ok) throw new Error(result.error || "Erro ao registrar.");
 
-        showMessage(`${registros.length} exercícios registrados com sucesso.`, "success");
-        
-        // Limpa o cache da sessão para o Fantasma puxar o treino novo amanhã
+        showMessage(`${registros.length} séries registradas com sucesso.`, "success");
         sessionStorage.removeItem('dados60dias'); 
 
         treinoEl.value = "";             
@@ -714,10 +805,9 @@
       timerDisplay.textContent = `${minutes}:${seconds}`;
     }
 
-    // Configuração dos botões rápidos (60s, 90s, 120s)
     presetBtns.forEach(btn => {
       btn.addEventListener("click", (e) => {
-        if (timerInterval) return; // Impede a mudança se o relógio já estiver rodando
+        if (timerInterval) return; 
         
         presetBtns.forEach(b => b.classList.remove("active"));
         e.target.classList.add("active");
