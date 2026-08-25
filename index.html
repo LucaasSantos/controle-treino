@@ -230,6 +230,12 @@
       color: var(--text);
     }
     
+    .exercise-target {
+      color: var(--muted); 
+      font-size: 11px; 
+      margin-top: 4px; 
+    }
+
     .ghost-marca { 
       color: var(--accent); 
       font-size: 11px; 
@@ -466,8 +472,6 @@
           msgBusca.textContent = `${data.total} séries encontradas.`;
           msgBusca.className = "message success";
           
-          // Agrupamento Nível 1: Data e Treino
-          // Agrupamento Nível 2: Exercício (já que agora temos várias séries por exercício)
           const treinosAgrupados = {};
           data.dados.forEach(item => {
             const chaveTreino = `${item.data} | ${item.treino}`;
@@ -484,7 +488,6 @@
             const div = document.createElement("div");
             div.className = "report-card";
             
-            // Cabeçalho do Treino
             let htmlGrupo = `
               <div style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
                 <span class="report-highlight">${escapeHtml(grupo.data)}</span> 
@@ -492,14 +495,12 @@
               </div>
             `;
             
-            // Renderiza cada exercício agrupado
             Object.entries(grupo.exercicios).forEach(([nomeEx, sets]) => {
               htmlGrupo += `
                 <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.05);">
                   <div style="font-weight: 600; font-size: 13px; color: var(--text); margin-bottom: 6px;">${escapeHtml(nomeEx)}</div>
               `;
               
-              // Renderiza cada série desse exercício
               sets.forEach(s => {
                 htmlGrupo += `
                   <div style="color: var(--muted); font-size: 11px; margin-top: 4px; display: flex; gap: 8px;">
@@ -604,7 +605,7 @@
       }
     }
 
-    // --- NOVA CONSTRUÇÃO DOS EXERCÍCIOS E SÉRIES ---
+    // --- RENDERIZAÇÃO DOS BLOCOS DE EXERCÍCIOS ---
     function renderExercicios(treino) {
       exerciciosEl.innerHTML = "";
       registrarBtn.disabled = true;
@@ -615,14 +616,12 @@
       }
 
       treino.exercicios.forEach((ex, index) => {
-        // Converte a string de séries (ex: "3") para número
         const numSets = parseInt(ex.series) || 1;
         
         const block = document.createElement("div");
         block.className = "exercise-block";
         block.dataset.nome = ex.nome;
 
-        // Gera as linhas individuais para cada série
         let setsHtml = '';
         for(let i = 1; i <= numSets; i++) {
           setsHtml += `
@@ -635,9 +634,11 @@
           `;
         }
 
+        // DEVOLVENDO O ALVO ORIGINAL (.exercise-target) AQUI
         block.innerHTML = `
           <div class="exercise-header">
-            <div class="exercise-name">${escapeHtml(ex.nome)} <span style="font-size: 11px; color: var(--muted); font-weight: normal;">(Alvo: ${escapeHtml(ex.reps)} reps)</span></div>
+            <div class="exercise-name">${escapeHtml(ex.nome)}</div>
+            <div class="exercise-target">Alvo: ${escapeHtml(ex.series)} séries • ${escapeHtml(ex.reps)} reps • RIR ${escapeHtml(ex.rir)}</div>
             <div class="ghost-marca"></div>
           </div>
           <div class="sets-container">
@@ -649,7 +650,6 @@
       registrarBtn.disabled = treino.exercicios.length === 0;
     }
 
-    // --- NOVO FANTASMA: LENDO MÚLTIPLAS SÉRIES ---
     async function buscarFantasma(nomeTreino) {
       const ghostElements = document.querySelectorAll('.ghost-marca');
       ghostElements.forEach(el => el.textContent = "Buscando histórico...");
@@ -680,11 +680,9 @@
             return;
           }
 
-          // Pega a data da última sessão deste treino específico
           const ultimaDataStr = filtered[filtered.length - 1].data;
           const ultimaSessao = filtered.filter(i => i.data === ultimaDataStr);
 
-          // Agrupa os exercícios dessa sessão específica para montar o Fantasma
           const ultimasMarcas = {};
           ultimaSessao.forEach(item => {
             if(!ultimasMarcas[item.exercicio]) ultimasMarcas[item.exercicio] = [];
@@ -697,9 +695,7 @@
             
             if (ultimasMarcas[nomeEx]) {
               const sets = ultimasMarcas[nomeEx];
-              // Identifica a maior carga usada no exercício
               const maxCarga = Math.max(...sets.map(s => Number(s.carga.replace(',','.')) || 0));
-              // Junta todas as repetições (ex: 10/10/8)
               const repsHist = sets.map(s => s.reps).join('/');
               
               ghostEl.innerHTML = `🔥 Último treino (${ultimaDataStr}): Máx ${maxCarga}kg | Reps: ${repsHist}`;
@@ -725,7 +721,6 @@
       }
     });
 
-    // --- NOVA LÓGICA DE REGISTRO: VARRENDO TODAS AS SÉRIES INDIVIDUAIS ---
     registrarBtn.addEventListener("click", async () => {
       const treino = treinos.find(t => t.nome === treinoEl.value);
       if (!treino) return;
@@ -743,7 +738,6 @@
           const repeticoes = row.querySelector(".repeticoes").value.trim();
           const rir = row.querySelector(".rir").value.trim();
 
-          // Obriga a preencher todas as séries
           if (!carga || !repeticoes || !rir) {
             showMessage(`Preencha todos os campos da Série ${setIndex} do exercício "${exNome}".`, "error");
             return;
@@ -754,7 +748,7 @@
             treino: treino.nome, 
             exercicio: exNome,
             carga, 
-            series: setIndex, // Agora grava a Série 1, 2, 3...
+            series: setIndex, 
             repeticoes, 
             rir
           });
